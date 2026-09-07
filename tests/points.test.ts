@@ -82,6 +82,17 @@ describe("generatePointLock", () => {
     expect(draws32(spy)).toBeLessThanOrEqual(16);
   });
 
+  it("rejects the share of the draw space its bound claims", () => {
+    // Pins the arithmetic the loop bound is argued from, so the comment cannot drift.
+    // Valid witnesses are [1, n-1], so a draw is rejected with mass (2^256 - n + 1) / 2^256.
+    // Integer comparisons only -- floats cannot represent these magnitudes exactly.
+    const TOTAL = 1n << 256n;
+    const rejected = TOTAL - (SECP256K1_N - 1n);
+    expect(rejected).toBe(432420386565659656852420866394968145600n);
+    expect(rejected).toBeGreaterThan(1n << 128n); // p > 2^-128
+    expect(rejected).toBeLessThan(1n << 129n); //  p < 2^-127
+  });
+
   it("fails the same way the other secret generators do", () => {
     vi.spyOn(globalThis.crypto, "getRandomValues").mockImplementation(() => {
       throw new Error("tclk: no Web Crypto CSPRNG available (crypto.getRandomValues)");

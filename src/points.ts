@@ -53,8 +53,10 @@ export function generatePointLock(): PointLock {
   // `await` can interrupt. `generateHashLock` and `generateSalt` let the same refusal
   // through; this was the one generator that did not.
   //
-  // Bounded for the same reason: a draw lands outside [1, n) with probability under 2^-128,
-  // so exhausting these attempts means the CSPRNG is broken, not that we were unlucky.
+  // Bounded for the same reason. A draw is rejected when it is zero or >= n, which is
+  // (2^256 - n + 1) / 2^256 of the space -- about 3.7e-39, or 2^-127.65. (Just *above*
+  // 2^-128: 2^256 - n is 4.32e38 and 2^128 is 3.40e38.) Eight such draws in a row is
+  // 2^-1021, so exhausting these attempts means the CSPRNG is broken, not bad luck.
   for (let attempt = 0; attempt < 8; attempt++) {
     const y = randomU8a(32);
     const v = BigInt(u8aToHex(y));
